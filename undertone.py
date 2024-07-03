@@ -21,15 +21,16 @@ def whispercpp_installed():
     return os.path.exists("whisper.cpp")
     pass
 
+# Clones whispercpp and makes the main file with default options
 def download_whispercpp():
-    # https://github.com/ggerganov/whisper.cpp
-    # downloads whispercpp
+
     os.system("git clone https://github.com/ggerganov/whisper.cpp.git")
     os.system("cd whisper.cpp && make -j")
 
 
+# This runs the whisper.cpp model bindings on the audio file, and saves the output to the output folder
 def run_model(audio, size):
-    os.system(f"cd whisper.cpp && ./main -m ./models/ggml-{size}.bin -f '../{audio}' -t 16 -otxt")
+    os.system(f"cd whisper.cpp && ./main -m ./models/ggml-{size}.bin -f '../{audio}' -t 8 -olrc -of ../output/{audio.split('/')[-1]}")
 
     pass
 
@@ -43,13 +44,13 @@ def download_video(url):
     pass
 
 def download_model(size):
-    os.system(f"cd whisper.cpp && make {size}")
+    if os.path.exists(f"whisper.cpp/models/ggml-{size}.bin"):
+        print(f"Model {size} already downloaded.")
+    else:
+        os.system(f"cd whisper.cpp && ./models/download-ggml-model.sh {size} && make {size}")
 
-
+# This will run when the file is imported from main.py.
 if not whispercpp_installed():
     print("Whispercpp not downloaded. Downloading now.")
     download_whispercpp()
 
-download_model("small")
-filename = download_video("https://www.youtube.com/watch?v=FgX5mGCnt64")
-run_model(filename, "small")
